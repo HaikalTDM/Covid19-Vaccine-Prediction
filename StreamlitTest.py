@@ -225,3 +225,64 @@ elif app_mode == "Dashboard":
     # Show filtered data
     st.subheader("Filtered Data")
     st.write(filtered_data)
+
+    # Visualization 1: Age Distribution by Mortality Outcome
+    st.subheader("Age Distribution by Mortality Outcome (Filtered Data)")
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.histplot(filtered_data, x='age', hue='bid', multiple='stack', bins=30, kde=False, ax=ax)
+    ax.set_title("Age Distribution by Mortality Outcome")
+    ax.set_xlabel("Age")
+    ax.set_ylabel("Count")
+    st.pyplot(fig)
+
+    # Visualization 2: Vaccine Brand Usage by Mortality Outcome
+    st.subheader("Vaccine Brand Usage by Mortality Outcome (Filtered Data)")
+    vaccine_counts = filtered_data[['brand1', 'brand2', 'brand3', 'bid']].melt(id_vars='bid', value_name='Vaccine Brand').dropna()
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.countplot(data=vaccine_counts, x='Vaccine Brand', hue='bid', ax=ax)
+    ax.set_title("Vaccine Brand Usage by Mortality Outcome")
+    ax.set_xlabel("Vaccine Brand")
+    ax.set_ylabel("Count")
+    plt.xticks(rotation=45)
+    st.pyplot(fig)
+
+    # Visualization 3: State-wise Mortality Distribution
+    st.subheader("Mortality Outcome Distribution Across States (Filtered Data)")
+    fig, ax = plt.subplots(figsize=(12, 6))
+    sns.countplot(data=filtered_data, x='state', hue='bid', order=filtered_data['state'].value_counts().index, ax=ax)
+    ax.set_title("Mortality Outcome Distribution Across States")
+    ax.set_xlabel("State")
+    ax.set_ylabel("Count")
+    plt.xticks(rotation=45)
+    st.pyplot(fig)
+
+    # Visualization 4: Mortality Probabilities by Vaccine Combination
+    st.subheader("Mortality Probabilities by Vaccine Combination (Filtered Data)")
+    filtered_data['predicted_proba_mortality'] = rf_model.predict_proba(filtered_data[['age', 'vaccine_combo_encoded']])[:, 1]
+    vaccine_impact_filtered = filtered_data.groupby('vaccine_combo').agg(
+        avg_predicted_mortality=('predicted_proba_mortality', 'mean'),
+        total_cases=('bid', 'count')
+    ).reset_index().sort_values(by='avg_predicted_mortality', ascending=False)
+
+    fig, ax = plt.subplots(figsize=(14, 8))  # Increased figure size
+    sns.barplot(data=vaccine_impact_filtered, x='vaccine_combo', y='avg_predicted_mortality', ax=ax, palette='coolwarm')
+    ax.set_title("Predicted Mortality Probabilities by Vaccine Combination (Filtered Data)", fontsize=16)
+    ax.set_xlabel("Vaccine Combination", fontsize=12)
+    ax.set_ylabel("Avg Predicted Mortality Probability", fontsize=12)
+    plt.xticks(rotation=90, ha='center', fontsize=10)  # Rotate labels 90 degrees
+    plt.tight_layout()  # Ensure everything fits nicely
+    st.pyplot(fig)
+
+    # Visualization 5: Heatmap
+    st.subheader("Heatmap: Mortality by Vaccine and Age Group (Filtered Data)")
+    filtered_data['age_group'] = pd.cut(filtered_data['age'], bins=[0, 17, 40, 65, 100], labels=['Child', 'Young Adult', 'Adult', 'Senior'])
+    heatmap_data_filtered = filtered_data.groupby(['vaccine_combo', 'age_group']).agg(
+        avg_predicted_mortality=('predicted_proba_mortality', 'mean')
+    ).reset_index().pivot(index='vaccine_combo', columns='age_group', values='avg_predicted_mortality').fillna(0)
+
+    fig, ax = plt.subplots(figsize=(12, 8))
+    sns.heatmap(heatmap_data_filtered, annot=True, cmap='coolwarm', fmt=".2f", cbar_kws={'label': 'Avg Predicted Mortality'})
+    ax.set_title("Heatmap: Mortality by Vaccine Combinations and Age Groups (Filtered Data)")
+    ax.set_xlabel("Age Group")
+    ax.set_ylabel("Vaccine Combination")
+    st.pyplot(fig)

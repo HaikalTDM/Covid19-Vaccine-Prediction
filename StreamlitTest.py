@@ -124,6 +124,13 @@ elif app_mode == "Data Visualization":
     if st.checkbox("Show Raw Data"):
         st.write(data.head())
 
+    # Define X for predictions
+    X = data[['age', 'vaccine_combo_encoded']]
+    
+    # Add predicted probabilities if not already present
+    if 'predicted_proba_mortality' not in data.columns:
+        data['predicted_proba_mortality'] = rf_model.predict_proba(X)[:, 1]
+
     # Age Distribution by Mortality Outcome
     st.subheader("Age Distribution by Mortality Outcome")
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -156,7 +163,6 @@ elif app_mode == "Data Visualization":
 
     # Mortality Probabilities by Vaccine Combination
     st.subheader("Mortality Probabilities by Vaccine Combination")
-    data['predicted_proba_mortality'] = rf_model.predict_proba(X)[:, 1]
     vaccine_impact = data.groupby('vaccine_combo').agg(
         avg_predicted_mortality=('predicted_proba_mortality', 'mean'),
         total_cases=('bid', 'count')
@@ -170,7 +176,6 @@ elif app_mode == "Data Visualization":
     plt.xticks(rotation=90, ha='center', fontsize=10)  # Rotate labels 90 degrees
     plt.tight_layout()  # Ensure everything fits nicely
     st.pyplot(fig)
-
 
     # Heatmap: Mortality by Vaccine and Age Group
     st.subheader("Heatmap: Mortality by Vaccine and Age Group")

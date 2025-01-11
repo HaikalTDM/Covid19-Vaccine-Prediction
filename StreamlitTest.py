@@ -190,3 +190,38 @@ elif app_mode == "Data Visualization":
     ax.set_xlabel("Age Group")
     ax.set_ylabel("Vaccine Combination")
     st.pyplot(fig)
+
+
+elif app_mode == "Dashboard":
+    st.header("Dashboard")
+
+    # Filter options
+    selected_state = st.multiselect("Filter by State", options=data['state'].unique(), default=data['state'].unique())
+    selected_vaccine = st.multiselect("Filter by Vaccine", options=data['vaccine_combo'].unique(), default=data['vaccine_combo'].unique())
+    age_range = st.slider("Select Age Range", int(data['age'].min()), int(data['age'].max()), (int(data['age'].min()), int(data['age'].max())))
+
+    # Apply filters
+    filtered_data = data[
+        (data['state'].isin(selected_state)) &
+        (data['vaccine_combo'].isin(selected_vaccine)) &
+        (data['age'].between(age_range[0], age_range[1]))
+    ]
+
+    # Display summary statistics
+    st.subheader("Summary Statistics")
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Total Cases", len(filtered_data))
+    col2.metric("Average Mortality Rate", f"{filtered_data['bid'].mean() * 100:.2f}%")
+    col3.metric("Unique Vaccine Combinations", filtered_data['vaccine_combo'].nunique())
+
+    # Allow data download
+    st.download_button(
+        label="Download Filtered Data as CSV",
+        data=filtered_data.to_csv(index=False),
+        file_name="filtered_data.csv",
+        mime="text/csv"
+    )
+
+    # Show filtered data
+    st.subheader("Filtered Data")
+    st.write(filtered_data)

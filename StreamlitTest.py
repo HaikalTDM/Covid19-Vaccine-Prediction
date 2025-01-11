@@ -120,36 +120,19 @@ elif app_mode == "Data Visualization":
 
     # Visualization 4: Mortality Probabilities by Vaccine Combination (Interactive)
     # Heatmap: Mortality by Vaccine and Age Group
-st.subheader("Heatmap: Mortality by Vaccine and Age Group")
-
-# Create age groups
-data['age_group'] = pd.cut(data['age'], bins=[0, 17, 40, 65, 100], labels=['Child', 'Young Adult', 'Adult', 'Senior'])
-
-# Aggregate data for the heatmap
-heatmap_data = data.groupby(['vaccine_combo', 'age_group']).agg(
-    avg_predicted_mortality=('predicted_proba_mortality', 'mean')
-).reset_index().pivot(index='vaccine_combo', columns='age_group', values='avg_predicted_mortality').fillna(0)
-
-# Create an interactive heatmap with Plotly
-import plotly.express as px
-
-fig = px.imshow(
-    heatmap_data,
-    labels=dict(x="Age Group", y="Vaccine Combination", color="Avg Predicted Mortality"),
-    color_continuous_scale='Viridis',  # Choose a visually distinct color scale
-    title="Heatmap: Mortality by Vaccine Combinations and Age Groups"
-)
-
-# Customize the layout for better readability
-fig.update_layout(
-    autosize=False,
-    width=1000,  # Set a large width for better visibility
-    height=800,  # Set a large height for better visibility
-    margin=dict(l=150, r=50, t=50, b=150),  # Add sufficient margins
-    xaxis=dict(tickangle=45),  # Rotate x-axis labels for readability
-    font=dict(size=12)  # Adjust font size
-)
-
-# Render the interactive chart in Streamlit
-st.plotly_chart(fig, use_container_width=True)
+    st.subheader("Heatmap: Mortality by Vaccine and Age Group")
+        data['age_group'] = pd.cut(data['age'], bins=[0, 17, 40, 65, 100], labels=['Child', 'Young Adult', 'Adult', 'Senior'])
+        heatmap_data = data.groupby(['vaccine_combo', 'age_group']).agg(
+            avg_predicted_mortality=('predicted_proba_mortality', 'mean')
+        ).reset_index().pivot(index='vaccine_combo', columns='age_group', values='avg_predicted_mortality').fillna(0)
+    
+        fig = px.imshow(
+            heatmap_data.values,
+            x=heatmap_data.columns,
+            y=heatmap_data.index,
+            color_continuous_scale='Viridis',  # Use a valid color scale
+            labels=dict(x="Age Group", y="Vaccine Combination", color="Avg Predicted Mortality"),
+            title="Heatmap: Mortality by Vaccine Combinations and Age Groups"
+        )
+        st.plotly_chart(fig)
 

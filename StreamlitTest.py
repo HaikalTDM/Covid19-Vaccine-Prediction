@@ -11,7 +11,7 @@ from sklearn.preprocessing import LabelEncoder  # Import LabelEncoder
 
 
 # Load the dataset
-file_path = "C:\\Users\\haika\\OneDrive\\Desktop\\FYPNEW\\Let's Go\\linelist_deaths1.csv"
+file_path = "linelist_deaths1.csv"
 data = pd.read_csv(file_path)
 
 # Preprocess the dataset
@@ -37,8 +37,8 @@ rf_model = RandomForestClassifier(random_state=42, n_estimators=100, class_weigh
 rf_model.fit(X_train, y_train)
 
 # Save the model and encoder
-joblib.dump(rf_model, "C:\\Users\\haika\\OneDrive\\Desktop\\FYPNEW\\mortality_model.pkl")
-joblib.dump(label_encoder, "C:\\Users\\haika\\OneDrive\\Desktop\\FYPNEW\\label_encoder.pkl")
+joblib.dump(rf_model, "mortality_model.pkl")
+joblib.dump(label_encoder, "label_encoder.pkl")
 
 # Streamlit app
 st.title("COVID-19 Vaccine Mortality Prediction and Data Insights")

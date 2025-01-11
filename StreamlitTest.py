@@ -77,7 +77,7 @@ st.title("COVID-19 Vaccine Mortality Prediction and Data Insights")
 st.sidebar.title("Navigation")
 app_mode = st.sidebar.selectbox(
     "Choose the mode:",
-    ["Prediction", "Data Visualization"]
+    ["Prediction", "Data Visualization", "Dashboard"]
 )
 
 # Prediction mode

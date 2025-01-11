@@ -229,15 +229,38 @@ elif app_mode == "Dashboard":
     ax.set_ylabel("Count")
     st.pyplot(fig)
 
-    st.markdown("### Heatmap: Mortality by Vaccine and Age Group")
-    filtered_data['age_group'] = pd.cut(filtered_data['age'], bins=[0, 17, 40, 65, 100], labels=['Child', 'Young Adult', 'Adult', 'Senior'])
-    heatmap_filtered = filtered_data.groupby(['vaccine_combo', 'age_group']).agg(
-        avg_predicted_mortality=('predicted_proba_mortality', 'mean')
-    ).reset_index().pivot(index='vaccine_combo', columns='age_group', values='avg_predicted_mortality').fillna(0)
+    # Heatmap: Mortality by Vaccine and Age Group
+st.markdown("### Heatmap: Mortality by Vaccine and Age Group")
 
-    fig, ax = plt.subplots(figsize=(12, 8))
-    sns.heatmap(heatmap_filtered, annot=True, cmap='coolwarm', fmt=".2f", cbar_kws={'label': 'Avg Predicted Mortality'})
-    ax.set_title("Heatmap: Mortality by Vaccine Combinations and Age Groups (Filtered)")
-    ax.set_xlabel("Age Group")
-    ax.set_ylabel("Vaccine Combination")
-    st.pyplot(fig)
+# Create 'age_group' column in the filtered dataset
+filtered_data['age_group'] = pd.cut(
+    filtered_data['age'], 
+    bins=[0, 17, 40, 65, 100], 
+    labels=['Child', 'Young Adult', 'Adult', 'Senior']
+)
+
+# Group and aggregate filtered data
+heatmap_filtered = filtered_data.groupby(['vaccine_combo', 'age_group']).agg(
+    avg_predicted_mortality=('predicted_proba_mortality', 'mean')
+).reset_index()
+
+# Pivot the data for the heatmap
+heatmap_filtered_pivot = heatmap_filtered.pivot(
+    index='vaccine_combo', 
+    columns='age_group', 
+    values='avg_predicted_mortality'
+).fillna(0)
+
+# Plot the heatmap
+fig, ax = plt.subplots(figsize=(12, 8))
+sns.heatmap(
+    heatmap_filtered_pivot, 
+    annot=True, 
+    cmap='coolwarm', 
+    fmt=".2f", 
+    cbar_kws={'label': 'Avg Predicted Mortality'}
+)
+ax.set_title("Heatmap: Mortality by Vaccine Combinations and Age Groups (Filtered)")
+ax.set_xlabel("Age Group")
+ax.set_ylabel("Vaccine Combination")
+st.pyplot(fig)

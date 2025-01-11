@@ -146,6 +146,23 @@ elif app_mode == "Data Visualization":
     plt.xticks(rotation=45)
     st.pyplot(fig)
 
+        # Mortality Probabilities by Vaccine Combination
+    st.subheader("Mortality Probabilities by Vaccine Combination")
+    data['predicted_proba_mortality'] = rf_model.predict_proba(X)[:, 1]
+    vaccine_impact = data.groupby('vaccine_combo').agg(
+        avg_predicted_mortality=('predicted_proba_mortality', 'mean'),
+        total_cases=('bid', 'count')
+    ).reset_index().sort_values(by='avg_predicted_mortality', ascending=False)
+
+    fig, ax = plt.subplots(figsize=(14, 8))  # Increased figure size
+    sns.barplot(data=vaccine_impact, x='vaccine_combo', y='avg_predicted_mortality', ax=ax, palette='coolwarm')
+    ax.set_title("Predicted Mortality Probabilities by Vaccine Combination", fontsize=16)
+    ax.set_xlabel("Vaccine Combination", fontsize=12)
+    ax.set_ylabel("Avg Predicted Mortality Probability", fontsize=12)
+    plt.xticks(rotation=90, ha='center', fontsize=10)  # Rotate labels 90 degrees
+    plt.tight_layout()  # Ensure everything fits nicely
+    st.pyplot(fig)
+
     # Visualization 3: Heatmap - Mortality by Vaccine and Age Group
     st.subheader("Heatmap: Mortality by Vaccine and Age Group")
 

@@ -133,7 +133,7 @@ elif app_mode == "Data Visualization":
         color='avg_predicted_mortality',
         labels={'avg_predicted_mortality': 'Avg Predicted Mortality Probability'},
         title='Predicted Mortality Probabilities by Vaccine Combination',
-        color_continuous_scale='coolwarm'
+        color_continuous_scale='Viridis'  # Use a valid Plotly color scale
     )
     fig.update_layout(xaxis=dict(tickangle=45))
     st.plotly_chart(fig)

@@ -192,8 +192,8 @@ elif app_mode == "Data Visualization":
     st.pyplot(fig)
 
 
-elif app_mode == "Admin Dashboard":
-    st.header("Admin Dashboard")
+elif app_mode == "Dashboard":
+    st.header("Dashboard")
 
     # Filtering options
     st.sidebar.markdown("### Filter Options")

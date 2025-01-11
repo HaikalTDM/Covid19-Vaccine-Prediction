@@ -193,28 +193,23 @@ elif app_mode == "Data Visualization":
 
 
 elif app_mode == "Dashboard":
-    st.header("Dashboard")
-
-    # Filter options
+    st.header("Admin Dashboard")
     selected_state = st.multiselect("Filter by State", options=data['state'].unique(), default=data['state'].unique())
     selected_vaccine = st.multiselect("Filter by Vaccine", options=data['vaccine_combo'].unique(), default=data['vaccine_combo'].unique())
     age_range = st.slider("Select Age Range", int(data['age'].min()), int(data['age'].max()), (int(data['age'].min()), int(data['age'].max())))
 
-    # Apply filters
     filtered_data = data[
         (data['state'].isin(selected_state)) &
         (data['vaccine_combo'].isin(selected_vaccine)) &
         (data['age'].between(age_range[0], age_range[1]))
     ]
 
-    # Display summary statistics
     st.subheader("Summary Statistics")
     col1, col2, col3 = st.columns(3)
     col1.metric("Total Cases", len(filtered_data))
     col2.metric("Average Mortality Rate", f"{filtered_data['bid'].mean() * 100:.2f}%")
     col3.metric("Unique Vaccine Combinations", filtered_data['vaccine_combo'].nunique())
 
-    # Allow data download
     st.download_button(
         label="Download Filtered Data as CSV",
         data=filtered_data.to_csv(index=False),
@@ -222,6 +217,27 @@ elif app_mode == "Dashboard":
         mime="text/csv"
     )
 
-    # Show filtered data
     st.subheader("Filtered Data")
     st.write(filtered_data)
+
+    st.subheader("Filtered Data Visualization")
+    st.markdown("### Age Distribution by Mortality Outcome")
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.histplot(filtered_data, x='age', hue='bid', multiple='stack', bins=30, kde=False, ax=ax)
+    ax.set_title("Age Distribution by Mortality Outcome (Filtered)")
+    ax.set_xlabel("Age")
+    ax.set_ylabel("Count")
+    st.pyplot(fig)
+
+    st.markdown("### Heatmap: Mortality by Vaccine and Age Group")
+    filtered_data['age_group'] = pd.cut(filtered_data['age'], bins=[0, 17, 40, 65, 100], labels=['Child', 'Young Adult', 'Adult', 'Senior'])
+    heatmap_filtered = filtered_data.groupby(['vaccine_combo', 'age_group']).agg(
+        avg_predicted_mortality=('predicted_proba_mortality', 'mean')
+    ).reset_index().pivot(index='vaccine_combo', columns='age_group', values='avg_predicted_mortality').fillna(0)
+
+    fig, ax = plt.subplots(figsize=(12, 8))
+    sns.heatmap(heatmap_filtered, annot=True, cmap='coolwarm', fmt=".2f", cbar_kws={'label': 'Avg Predicted Mortality'})
+    ax.set_title("Heatmap: Mortality by Vaccine Combinations and Age Groups (Filtered)")
+    ax.set_xlabel("Age Group")
+    ax.set_ylabel("Vaccine Combination")
+    st.pyplot(fig)

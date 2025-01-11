@@ -126,13 +126,13 @@ elif app_mode == "Data Visualization":
             avg_predicted_mortality=('predicted_proba_mortality', 'mean')
         ).reset_index().pivot(index='vaccine_combo', columns='age_group', values='avg_predicted_mortality').fillna(0)
     
-        fig = px.imshow(
-            heatmap_data.values,
-            x=heatmap_data.columns,
-            y=heatmap_data.index,
-            color_continuous_scale='Viridis',  # Use a valid color scale
-            labels=dict(x="Age Group", y="Vaccine Combination", color="Avg Predicted Mortality"),
-            title="Heatmap: Mortality by Vaccine Combinations and Age Groups"
-        )
-        st.plotly_chart(fig)
+    fig = px.imshow(
+        heatmap_data.values,
+        x=heatmap_data.columns,
+        y=heatmap_data.index,
+        color_continuous_scale='Viridis',  # Use a valid color scale
+        labels=dict(x="Age Group", y="Vaccine Combination", color="Avg Predicted Mortality"),
+        title="Heatmap: Mortality by Vaccine Combinations and Age Groups"
+    )
+    st.plotly_chart(fig)
 

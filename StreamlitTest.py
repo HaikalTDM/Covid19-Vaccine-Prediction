@@ -139,18 +139,27 @@ elif app_mode == "Data Visualization":
     st.plotly_chart(fig)
 
     # Visualization 5: Heatmap of Mortality by Vaccine and Age Group
-    st.subheader("Heatmap: Mortality by Vaccine and Age Group")
+    # Heatmap: Mortality by Vaccine and Age Group
+st.subheader("Heatmap: Mortality by Vaccine and Age Group")
     data['age_group'] = pd.cut(data['age'], bins=[0, 17, 40, 65, 100], labels=['Child', 'Young Adult', 'Adult', 'Senior'])
     heatmap_data = data.groupby(['vaccine_combo', 'age_group']).agg(
         avg_predicted_mortality=('predicted_proba_mortality', 'mean')
     ).reset_index().pivot(index='vaccine_combo', columns='age_group', values='avg_predicted_mortality').fillna(0)
-
-    fig = px.imshow(
-        heatmap_data.values,
-        x=heatmap_data.columns,
-        y=heatmap_data.index,
-        color_continuous_scale='Viridis',  # Use a valid color scale
-        labels=dict(x="Age Group", y="Vaccine Combination", color="Avg Predicted Mortality"),
-        title="Heatmap: Mortality by Vaccine Combinations and Age Groups"
+    
+    fig, ax = plt.subplots(figsize=(16, 12))  # Increase figure size
+    sns.heatmap(
+        heatmap_data, 
+        annot=True, 
+        cmap='viridis',  # Use a visually distinct colormap
+        fmt=".2f", 
+        cbar_kws={'label': 'Avg Predicted Mortality'}, 
+        linewidths=0.5,  # Add gridlines for clarity
+        ax=ax
     )
-    st.plotly_chart(fig)
+    ax.set_title("Heatmap: Mortality by Vaccine Combinations and Age Groups", fontsize=18, pad=20)
+    ax.set_xlabel("Age Group", fontsize=14)
+    ax.set_ylabel("Vaccine Combination", fontsize=14)
+    plt.xticks(rotation=45, ha='right', fontsize=12)  # Rotate and align x-axis labels
+    plt.yticks(fontsize=10)  # Adjust y-axis label font size
+    plt.tight_layout()  # Ensure the plot uses the space efficiently
+    st.pyplot(fig)

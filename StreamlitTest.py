@@ -149,7 +149,7 @@ elif app_mode == "Data Visualization":
         heatmap_data.values,
         x=heatmap_data.columns,
         y=heatmap_data.index,
-        color_continuous_scale='coolwarm',
+        color_continuous_scale='Viridis',  # Use a valid color scale
         labels=dict(x="Age Group", y="Vaccine Combination", color="Avg Predicted Mortality"),
         title="Heatmap: Mortality by Vaccine Combinations and Age Groups"
     )

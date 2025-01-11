@@ -19,7 +19,7 @@ def load_model():
 # Function to load the dataset (caching for efficiency)
 @st.cache_data
 def load_data():
-    file_path = "data/linelist_deaths1.csv"
+    file_path = "linelist_deaths1.csv"
     data = pd.read_csv(file_path)
 
     # Preprocess the dataset

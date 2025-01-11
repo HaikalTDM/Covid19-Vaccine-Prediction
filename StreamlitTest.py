@@ -70,7 +70,7 @@ data = load_data()
 data['vaccine_combo_encoded'] = label_encoder.transform(data['vaccine_combo'])
 
 # Define vaccine brands for dropdowns
-vaccine_brands = ['Pfizer', 'Sinovac', 'AstraZeneca', 'Moderna', 'Johnson & Johnson', 'No Dose']
+vaccine_brands = ['Pfizer', 'Sinovac', 'AstraZeneca', 'Moderna',  'No Dose']
 
 # Streamlit application setup
 st.title("COVID-19 Vaccine Mortality Prediction and Data Insights")

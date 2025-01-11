@@ -140,7 +140,7 @@ elif app_mode == "Data Visualization":
 
     # Visualization 5: Heatmap of Mortality by Vaccine and Age Group
     # Heatmap: Mortality by Vaccine and Age Group
-st.subheader("Heatmap: Mortality by Vaccine and Age Group")
+    st.subheader("Heatmap: Mortality by Vaccine and Age Group")
     data['age_group'] = pd.cut(data['age'], bins=[0, 17, 40, 65, 100], labels=['Child', 'Young Adult', 'Adult', 'Senior'])
     heatmap_data = data.groupby(['vaccine_combo', 'age_group']).agg(
         avg_predicted_mortality=('predicted_proba_mortality', 'mean')

@@ -317,7 +317,6 @@ elif app_mode == "Admin Dashboard":
         # Logout button
         if st.button("Logout"):
             st.session_state.logged_in = False
-            st.experimental_rerun()  # Refresh the app to show the login form
 
         # File upload section
         dataset_file = st.file_uploader("Upload New Dataset (CSV format)", type=["csv"])
@@ -358,4 +357,5 @@ elif app_mode == "Admin Dashboard":
             st.write(data.columns.tolist())
         except NameError:
             st.info("Upload a dataset to view its details.")
+
 

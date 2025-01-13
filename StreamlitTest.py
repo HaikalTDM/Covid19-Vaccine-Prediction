@@ -77,7 +77,7 @@ st.title("COVID-19 Vaccine Mortality Prediction and Data Insights")
 st.sidebar.title("Navigation")
 app_mode = st.sidebar.selectbox(
     "Choose the mode:",
-    ["Prediction", "Data Visualization", "Dashboard"]
+    ["Prediction", "Data Visualization", "Dashboard", "Admin Dashboard"]
 )
 
 # Prediction mode
@@ -286,3 +286,64 @@ elif app_mode == "Dashboard":
     ax.set_xlabel("Age Group")
     ax.set_ylabel("Vaccine Combination")
     st.pyplot(fig)
+
+# Admin Dashboard mode
+elif app_mode == "Admin Dashboard":
+    st.header("Admin Dashboard")
+
+    # Admin login
+    admin_username = st.text_input("Admin Username")
+    admin_password = st.text_input("Admin Password", type="password")
+    login_button = st.button("Login")
+
+    # Dummy credentials for simplicity (these can be replaced with a secure method)
+    ADMIN_CREDENTIALS = {"admin": "password123"}
+
+    if login_button:
+        if admin_username in ADMIN_CREDENTIALS and ADMIN_CREDENTIALS[admin_username] == admin_password:
+            st.success("Logged in successfully!")
+            
+            # Admin functionalities
+            st.subheader("Upload New Dataset and Models")
+
+            # File upload section
+            dataset_file = st.file_uploader("Upload New Dataset (CSV format)", type=["csv"])
+            model_file = st.file_uploader("Upload New Mortality Model (PKL format)", type=["pkl"])
+            encoder_file = st.file_uploader("Upload New Label Encoder (PKL format)", type=["pkl"])
+
+            # Handle dataset upload
+            if dataset_file:
+                try:
+                    data = pd.read_csv(dataset_file)
+                    data.to_csv("linelist_deaths1.csv", index=False)  # Save the uploaded dataset
+                    st.success("Dataset uploaded successfully!")
+                except Exception as e:
+                    st.error(f"Failed to upload dataset: {e}")
+
+            # Handle model upload
+            if model_file:
+                try:
+                    with open("mortality_model.pkl", "wb") as f:
+                        f.write(model_file.read())  # Save the uploaded model
+                    st.success("Mortality model uploaded successfully!")
+                except Exception as e:
+                    st.error(f"Failed to upload mortality model: {e}")
+
+            # Handle encoder upload
+            if encoder_file:
+                try:
+                    with open("label_encoder.pkl", "wb") as f:
+                        f.write(encoder_file.read())  # Save the uploaded encoder
+                    st.success("Label encoder uploaded successfully!")
+                except Exception as e:
+                    st.error(f"Failed to upload label encoder: {e}")
+
+            # Display Admin Data Overview (Optional)
+            st.subheader("Admin Data Overview")
+            try:
+                st.write(f"Dataset has **{len(data)} records** and the following columns:")
+                st.write(data.columns.tolist())
+            except NameError:
+                st.info("Upload a dataset to view its details.")
+        else:
+            st.error("Invalid credentials. Please try again.")

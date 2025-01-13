@@ -302,7 +302,7 @@ elif app_mode == "Admin Dashboard":
         login_button = st.button("Login")
 
         # Dummy credentials for simplicity (these can be replaced with a secure method)
-        ADMIN_CREDENTIALS = {"admin": "admin"}
+        ADMIN_CREDENTIALS = {"admin": "haikaltdm46"}
 
         if login_button:
             if admin_username in ADMIN_CREDENTIALS and ADMIN_CREDENTIALS[admin_username] == admin_password:

@@ -291,59 +291,71 @@ elif app_mode == "Dashboard":
 elif app_mode == "Admin Dashboard":
     st.header("Admin Dashboard")
 
-    # Admin login
-    admin_username = st.text_input("Admin Username")
-    admin_password = st.text_input("Admin Password", type="password")
-    login_button = st.button("Login")
+    # Initialize session state for login
+    if "logged_in" not in st.session_state:
+        st.session_state.logged_in = False
 
-    # Dummy credentials for simplicity (these can be replaced with a secure method)
-    ADMIN_CREDENTIALS = {"admin": "admin"}
+    # Display login form if not logged in
+    if not st.session_state.logged_in:
+        admin_username = st.text_input("Admin Username")
+        admin_password = st.text_input("Admin Password", type="password")
+        login_button = st.button("Login")
 
-    if login_button:
-        if admin_username in ADMIN_CREDENTIALS and ADMIN_CREDENTIALS[admin_username] == admin_password:
-            st.success("Logged in successfully!")
-            
-            # Admin functionalities
-            st.subheader("Upload New Dataset and Models")
+        # Dummy credentials for simplicity (these can be replaced with a secure method)
+        ADMIN_CREDENTIALS = {"admin": "admin"}
 
-            # File upload section
-            dataset_file = st.file_uploader("Upload New Dataset (CSV format)", type=["csv"])
-            model_file = st.file_uploader("Upload New Mortality Model (PKL format)", type=["pkl"])
-            encoder_file = st.file_uploader("Upload New Label Encoder (PKL format)", type=["pkl"])
+        if login_button:
+            if admin_username in ADMIN_CREDENTIALS and ADMIN_CREDENTIALS[admin_username] == admin_password:
+                st.session_state.logged_in = True
+                st.success("Logged in successfully!")
+            else:
+                st.error("Invalid credentials. Please try again.")
+    else:
+        # Show the admin dashboard functionalities after login
+        st.subheader("Upload New Dataset and Models")
 
-            # Handle dataset upload
-            if dataset_file:
-                try:
-                    data = pd.read_csv(dataset_file)
-                    data.to_csv("linelist_deaths1.csv", index=False)  # Save the uploaded dataset
-                    st.success("Dataset uploaded successfully!")
-                except Exception as e:
-                    st.error(f"Failed to upload dataset: {e}")
+        # Logout button
+        if st.button("Logout"):
+            st.session_state.logged_in = False
+            st.experimental_rerun()  # Refresh the app to show the login form
 
-            # Handle model upload
-            if model_file:
-                try:
-                    with open("mortality_model.pkl", "wb") as f:
-                        f.write(model_file.read())  # Save the uploaded model
-                    st.success("Mortality model uploaded successfully!")
-                except Exception as e:
-                    st.error(f"Failed to upload mortality model: {e}")
+        # File upload section
+        dataset_file = st.file_uploader("Upload New Dataset (CSV format)", type=["csv"])
+        model_file = st.file_uploader("Upload New Mortality Model (PKL format)", type=["pkl"])
+        encoder_file = st.file_uploader("Upload New Label Encoder (PKL format)", type=["pkl"])
 
-            # Handle encoder upload
-            if encoder_file:
-                try:
-                    with open("label_encoder.pkl", "wb") as f:
-                        f.write(encoder_file.read())  # Save the uploaded encoder
-                    st.success("Label encoder uploaded successfully!")
-                except Exception as e:
-                    st.error(f"Failed to upload label encoder: {e}")
-
-            # Display Admin Data Overview (Optional)
-            st.subheader("Admin Data Overview")
+        # Handle dataset upload
+        if dataset_file:
             try:
-                st.write(f"Dataset has **{len(data)} records** and the following columns:")
-                st.write(data.columns.tolist())
-            except NameError:
-                st.info("Upload a dataset to view its details.")
-        else:
-            st.error("Invalid credentials. Please try again.")
+                data = pd.read_csv(dataset_file)
+                data.to_csv("linelist_deaths1.csv", index=False)  # Save the uploaded dataset
+                st.success("Dataset uploaded successfully!")
+            except Exception as e:
+                st.error(f"Failed to upload dataset: {e}")
+
+        # Handle model upload
+        if model_file:
+            try:
+                with open("mortality_model.pkl", "wb") as f:
+                    f.write(model_file.read())  # Save the uploaded model
+                st.success("Mortality model uploaded successfully!")
+            except Exception as e:
+                st.error(f"Failed to upload mortality model: {e}")
+
+        # Handle encoder upload
+        if encoder_file:
+            try:
+                with open("label_encoder.pkl", "wb") as f:
+                    f.write(encoder_file.read())  # Save the uploaded encoder
+                st.success("Label encoder uploaded successfully!")
+            except Exception as e:
+                st.error(f"Failed to upload label encoder: {e}")
+
+        # Display Admin Data Overview (Optional)
+        st.subheader("Admin Data Overview")
+        try:
+            st.write(f"Dataset has **{len(data)} records** and the following columns:")
+            st.write(data.columns.tolist())
+        except NameError:
+            st.info("Upload a dataset to view its details.")
+

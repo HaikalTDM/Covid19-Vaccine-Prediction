@@ -115,17 +115,17 @@ if app_mode == "Prediction":
                 # Display the result
                 st.success(f"Predicted Mortality Rate: {result}%")
 
-                # Dynamic best combination recommendation
-                if dose2 == "No Dose" or booster == "No Dose":
+                # Dynamic recommendation for users with incomplete vaccination
+                if dose2 == "No Dose" and booster == "No Dose":
                     lowest_rate = mortality_probability
-                    best_combination = None
+                    best_combo = None
 
-                    # Iterate through all possible combinations for Dose 2 and Booster
-                    for dose2_option in vaccine_brands:
-                        if dose2_option != "No Dose" or dose2 != "No Dose":
+                    for second_dose in vaccine_brands:
+                        if second_dose != "No Dose":
                             for booster_option in vaccine_brands:
-                                if booster_option != "No Dose" or booster != "No Dose":
-                                    test_combo = '-'.join(sorted(filter(lambda x: x != "No Dose", [dose1, dose2_option, booster_option])))
+                                if booster_option != "No Dose":
+                                    # Simulate with each combination of second dose and booster
+                                    test_combo = '-'.join(sorted([dose1, second_dose, booster_option]))
                                     test_encoded = label_encoder.transform([test_combo])[0]
                                     test_features = np.array([[age, test_encoded]])
                                     test_rate = rf_model.predict_proba(test_features)[0][1]
@@ -133,18 +133,36 @@ if app_mode == "Prediction":
                                     # Check if this combination improves the rate
                                     if test_rate < lowest_rate:
                                         lowest_rate = test_rate
-                                        best_combination = (dose1, dose2_option, booster_option)
+                                        best_combo = (second_dose, booster_option)
 
                     # Provide the best recommendation
-                    if best_combination:
-                        recommended_dose2, recommended_booster = best_combination[1], best_combination[2]
-                        st.info(
-                            f"Recommendation: Based on your input, consider completing your vaccination with "
-                            f"Dose 2: **{recommended_dose2}**, Booster: **{recommended_booster}**. "
-                            f"This combination reduces the mortality rate to **{round(lowest_rate * 100, 2)}%**."
-                        )
+                    if best_combo:
+                        st.info(f"Recommendation: Based on your input, consider taking {best_combo[0]} for your second dose and {best_combo[1]} for your booster. This combination reduces the mortality rate to {round(lowest_rate * 100, 2)}%.")
+                
+                # Dynamic recommendation for booster only
+                elif booster == "No Dose":
+                    lowest_rate = mortality_probability
+                    best_booster = None
+
+                    for booster_option in vaccine_brands:
+                        if booster_option != "No Dose":
+                            # Simulate with each booster option
+                            test_combo = '-'.join(sorted([dose1, dose2, booster_option]))
+                            test_encoded = label_encoder.transform([test_combo])[0]
+                            test_features = np.array([[age, test_encoded]])
+                            test_rate = rf_model.predict_proba(test_features)[0][1]
+
+                            # Check if this booster improves the rate
+                            if test_rate < lowest_rate:
+                                lowest_rate = test_rate
+                                best_booster = booster_option
+
+                    # Provide the best booster recommendation
+                    if best_booster:
+                        st.info(f"Recommendation: Based on your input, consider taking {best_booster} as your booster. This reduces the mortality rate to {round(lowest_rate * 100, 2)}%.")
         except ValueError:
             st.error(f"Invalid vaccine combination: {selected_combo}. Please check your input.")
+
 
 
 

@@ -80,7 +80,6 @@ app_mode = st.sidebar.selectbox(
     ["Prediction", "Data Visualization", "Dashboard", "Admin Dashboard"]
 )
 
-# Prediction mode
 if app_mode == "Prediction":
     st.header("Predict Mortality Rate")
     st.markdown("""
@@ -116,17 +115,30 @@ if app_mode == "Prediction":
                 # Display the result
                 st.success(f"Predicted Mortality Rate: {result}%")
 
-                # Recommendation logic
-                recommended_vaccine = None
-                if dose2 == "No Dose":
-                    recommended_vaccine = "Pfizer"  # Replace with logic from your dataset or rules
-                elif booster == "No Dose":
-                    recommended_vaccine = "Moderna"  # Replace with logic from your dataset or rules
+                # Dynamic recommendation for the best booster
+                if booster == "No Dose":
+                    lowest_rate = mortality_probability
+                    best_vaccine = None
 
-                if recommended_vaccine:
-                    st.info(f"Recommendation: For better protection, consider taking {recommended_vaccine} for your next dose.")
+                    for booster_option in vaccine_brands:
+                        if booster_option != "No Dose":
+                            # Simulate with each possible booster
+                            test_combo = '-'.join(sorted([dose1, dose2, booster_option]))
+                            test_encoded = label_encoder.transform([test_combo])[0]
+                            test_features = np.array([[age, test_encoded]])
+                            test_rate = rf_model.predict_proba(test_features)[0][1]
+
+                            # Check if this booster improves the rate
+                            if test_rate < lowest_rate:
+                                lowest_rate = test_rate
+                                best_vaccine = booster_option
+
+                    # Provide the best recommendation
+                    if best_vaccine:
+                        st.info(f"Recommendation: Based on your input, consider taking {best_vaccine} as a booster. It reduces the mortality rate to {round(lowest_rate * 100, 2)}%.")
         except ValueError:
             st.error(f"Invalid vaccine combination: {selected_combo}. Please check your input.")
+
 
 
 # Dashboard mode

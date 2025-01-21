@@ -164,6 +164,79 @@ if app_mode == "Prediction":
             st.error(f"Invalid vaccine combination: {selected_combo}. Please check your input.")
 
 
+elif app_mode == "Data Visualization":
+    st.header("Data Insights and Visualizations")
+
+    if st.checkbox("Show Raw Data"):
+        st.write(data.head())
+
+    # Define X for predictions
+    X = data[['age', 'vaccine_combo_encoded']]
+    
+    # Add predicted probabilities if not already present
+    if 'predicted_proba_mortality' not in data.columns:
+        data['predicted_proba_mortality'] = rf_model.predict_proba(X)[:, 1]
+
+    # Age Distribution by Mortality Outcome
+    st.subheader("Age Distribution by Mortality Outcome")
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.histplot(data, x='age', hue='bid', multiple='stack', bins=30, kde=False, ax=ax)
+    ax.set_title("Age Distribution by Mortality Outcome")
+    ax.set_xlabel("Age")
+    ax.set_ylabel("Count")
+    st.pyplot(fig)
+
+    # Vaccine Brand Usage by Mortality Outcome
+    st.subheader("Vaccine Brand Usage by Mortality Outcome")
+    vaccine_counts = data[['brand1', 'brand2', 'brand3', 'bid']].melt(id_vars='bid', value_name='Vaccine Brand').dropna()
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.countplot(data=vaccine_counts, x='Vaccine Brand', hue='bid', ax=ax)
+    ax.set_title("Vaccine Brand Usage by Mortality Outcome")
+    ax.set_xlabel("Vaccine Brand")
+    ax.set_ylabel("Count")
+    plt.xticks(rotation=45)
+    st.pyplot(fig)
+
+    # Mortality Outcome Distribution Across States
+    st.subheader("Mortality Outcome Distribution Across States")
+    fig, ax = plt.subplots(figsize=(12, 6))
+    sns.countplot(data=data, x='state', hue='bid', order=data['state'].value_counts().index, ax=ax)
+    ax.set_title("Mortality Outcome Distribution Across States")
+    ax.set_xlabel("State")
+    ax.set_ylabel("Count")
+    plt.xticks(rotation=45)
+    st.pyplot(fig)
+
+    # Mortality Probabilities by Vaccine Combination
+    st.subheader("Mortality Probabilities by Vaccine Combination")
+    vaccine_impact = data.groupby('vaccine_combo').agg(
+        avg_predicted_mortality=('predicted_proba_mortality', 'mean'),
+        total_cases=('bid', 'count')
+    ).reset_index().sort_values(by='avg_predicted_mortality', ascending=False)
+
+    fig, ax = plt.subplots(figsize=(14, 8))  # Increased figure size
+    sns.barplot(data=vaccine_impact, x='vaccine_combo', y='avg_predicted_mortality', ax=ax, palette='coolwarm')
+    ax.set_title("Predicted Mortality Probabilities by Vaccine Combination", fontsize=16)
+    ax.set_xlabel("Vaccine Combination", fontsize=12)
+    ax.set_ylabel("Avg Predicted Mortality Probability", fontsize=12)
+    plt.xticks(rotation=90, ha='center', fontsize=10)  # Rotate labels 90 degrees
+    plt.tight_layout()  # Ensure everything fits nicely
+    st.pyplot(fig)
+
+    # Heatmap: Mortality by Vaccine and Age Group
+    st.subheader("Heatmap: Mortality by Vaccine and Age Group")
+    data['age_group'] = pd.cut(data['age'], bins=[0, 17, 40, 65, 100], labels=['Child', 'Young Adult', 'Adult', 'Senior'])
+    heatmap_data = data.groupby(['vaccine_combo', 'age_group']).agg(
+        avg_predicted_mortality=('predicted_proba_mortality', 'mean')
+    ).reset_index().pivot(index='vaccine_combo', columns='age_group', values='avg_predicted_mortality').fillna(0)
+
+    fig, ax = plt.subplots(figsize=(12, 8))
+    sns.heatmap(heatmap_data, annot=True, cmap='coolwarm', fmt=".2f", cbar_kws={'label': 'Avg Predicted Mortality'})
+    ax.set_title("Heatmap: Mortality by Vaccine Combinations and Age Groups")
+    ax.set_xlabel("Age Group")
+    ax.set_ylabel("Vaccine Combination")
+    st.pyplot(fig)
+
 
 
 # Dashboard mode

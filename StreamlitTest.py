@@ -1,12 +1,17 @@
+
+
 import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
+import openai
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
+st.set_page_config(page_title="Vaccine Mortality Insights", layout="wide")
+
 
 
 # Function to train the model and save it (for demonstration purposes)
@@ -73,9 +78,9 @@ data['vaccine_combo_encoded'] = label_encoder.transform(data['vaccine_combo'])
 # Define vaccine brands for dropdowns
 vaccine_brands = ['Pfizer', 'Sinovac', 'AstraZeneca', 'Moderna',  'No Dose']
 
-st.set_page_config(page_title="Vaccine Mortality Insights", layout="wide")
+
 # Streamlit application setup
-st.title("Malaysia COVID-19 Vaccine Mortality Prediction ")
+st.title("COVID-19 Vaccine Mortality Prediction ")
 st.sidebar.title("🧭 Navigation")
 st.sidebar.markdown("### Choose the mode:")
 
@@ -84,8 +89,10 @@ modes = {
     "Data Visualization": "📊 Data Visualization",
     "Dashboard": "📋 Dashboard",
     "Admin Dashboard": "🔐 Admin Dashboard",
-    "Vaccination Map": "🗺️ Vaccination Map"
+    "Vaccination Map": "🗺️ Vaccination Map",
+    "Health Chatbot": "💬 Health Chatbot"
 }
+
 
 for key, label in modes.items():
     if st.sidebar.button(label):
@@ -437,7 +444,7 @@ elif app_mode == "Vaccination Map":
 
 
     # Clinic list
-    st.subheader("📋 Vaccination Centre ")
+    st.subheader("📋 Vaccination Centre List with Map Buttons")
 
     for index, row in filtered_df.iterrows():
         col1, col2 = st.columns([4, 1])
@@ -455,3 +462,47 @@ elif app_mode == "Vaccination Map":
         file_name='filtered_clinic_locations.csv',
         mime='text/csv',
     )
+
+    
+
+elif app_mode == "Health Chatbot":
+    st.header("🧠 Ask the Health Bot")
+    st.markdown("This AI chatbot can answer questions about COVID-19, vaccines, and general health.")
+
+    # Ollama-based API setup (OpenAI compatible)
+    import openai
+    openai.api_base = "http://localhost:11434/v1"  # Ollama's default local API endpoint
+    openai.api_key = "ollama"  # Dummy key required by openai client
+    model = "llama3"  # You can also use "mistral", "gemma", etc. if pulled
+
+    # Initialize session state for chat history
+    if "messages" not in st.session_state:
+        st.session_state.messages = [
+            {"role": "assistant", "content": "Hi! Ask me anything about your health, COVID-19, or vaccines."}
+        ]
+
+    # Display chat history
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    # Chat input
+    user_input = st.chat_input("Ask me anything...")
+    if user_input:
+        st.session_state.messages.append({"role": "user", "content": user_input})
+        with st.chat_message("user"):
+            st.markdown(user_input)
+
+        with st.chat_message("assistant"):
+            with st.spinner("Thinking..."):
+                try:
+                    response = openai.ChatCompletion.create(
+                        model=model,
+                        messages=st.session_state.messages
+                    )
+                    reply = response.choices[0].message.content
+                except Exception as e:
+                    reply = f"⚠️ Error: {e}"
+
+                st.markdown(reply)
+                st.session_state.messages.append({"role": "assistant", "content": reply})

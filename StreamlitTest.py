@@ -8,6 +8,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
+
 # Function to train the model and save it (for demonstration purposes)
 def train_and_save_model():
     # Load the dataset
@@ -72,14 +73,32 @@ data['vaccine_combo_encoded'] = label_encoder.transform(data['vaccine_combo'])
 # Define vaccine brands for dropdowns
 vaccine_brands = ['Pfizer', 'Sinovac', 'AstraZeneca', 'Moderna',  'No Dose']
 
+st.set_page_config(page_title="Vaccine Mortality Insights", layout="wide")
 # Streamlit application setup
 st.title("COVID-19 Vaccine Mortality Prediction and Data Insights")
-st.sidebar.title("Navigation")
-app_mode = st.sidebar.selectbox(
-    "Choose the mode:",
-    ["Prediction", "Data Visualization", "Dashboard", "Admin Dashboard"]
-)
+st.sidebar.title("🧭 Navigation")
+st.sidebar.markdown("### Choose the mode:")
 
+modes = {
+    "Prediction": "🧮 Prediction",
+    "Data Visualization": "📊 Data Visualization",
+    "Dashboard": "📋 Dashboard",
+    "Admin Dashboard": "🔐 Admin Dashboard",
+    "Vaccination Map": "🗺️ Vaccination Map"
+}
+
+for key, label in modes.items():
+    if st.sidebar.button(label):
+        st.session_state["app_mode"] = key
+
+# Set default if not already selected
+if "app_mode" not in st.session_state:
+    st.session_state["app_mode"] = "Prediction"
+
+app_mode = st.session_state["app_mode"]
+
+
+# Prediction mode
 if app_mode == "Prediction":
     st.header("Predict Mortality Rate")
     st.markdown("""
@@ -114,55 +133,8 @@ if app_mode == "Prediction":
 
                 # Display the result
                 st.success(f"Predicted Mortality Rate: {result}%")
-
-                # Dynamic recommendation for users with incomplete vaccination
-                if dose2 == "No Dose" and booster == "No Dose":
-                    lowest_rate = mortality_probability
-                    best_combo = None
-
-                    for second_dose in vaccine_brands:
-                        if second_dose != "No Dose":
-                            for booster_option in vaccine_brands:
-                                if booster_option != "No Dose":
-                                    # Simulate with each combination of second dose and booster
-                                    test_combo = '-'.join(sorted([dose1, second_dose, booster_option]))
-                                    test_encoded = label_encoder.transform([test_combo])[0]
-                                    test_features = np.array([[age, test_encoded]])
-                                    test_rate = rf_model.predict_proba(test_features)[0][1]
-
-                                    # Check if this combination improves the rate
-                                    if test_rate < lowest_rate:
-                                        lowest_rate = test_rate
-                                        best_combo = (second_dose, booster_option)
-
-                    # Provide the best recommendation
-                    if best_combo:
-                        st.info(f"Recommendation: Based on your input, consider taking {best_combo[0]} for your second dose and {best_combo[1]} for your booster. This combination reduces the mortality rate to {round(lowest_rate * 100, 2)}%.")
-                
-                # Dynamic recommendation for booster only
-                elif booster == "No Dose":
-                    lowest_rate = mortality_probability
-                    best_booster = None
-
-                    for booster_option in vaccine_brands:
-                        if booster_option != "No Dose":
-                            # Simulate with each booster option
-                            test_combo = '-'.join(sorted([dose1, dose2, booster_option]))
-                            test_encoded = label_encoder.transform([test_combo])[0]
-                            test_features = np.array([[age, test_encoded]])
-                            test_rate = rf_model.predict_proba(test_features)[0][1]
-
-                            # Check if this booster improves the rate
-                            if test_rate < lowest_rate:
-                                lowest_rate = test_rate
-                                best_booster = booster_option
-
-                    # Provide the best booster recommendation
-                    if best_booster:
-                        st.info(f"Recommendation: Based on your input, consider taking {best_booster} as your booster. This reduces the mortality rate to {round(lowest_rate * 100, 2)}%.")
         except ValueError:
             st.error(f"Invalid vaccine combination: {selected_combo}. Please check your input.")
-
 
 elif app_mode == "Data Visualization":
     st.header("Data Insights and Visualizations")
@@ -236,8 +208,6 @@ elif app_mode == "Data Visualization":
     ax.set_xlabel("Age Group")
     ax.set_ylabel("Vaccine Combination")
     st.pyplot(fig)
-
-
 
 # Dashboard mode
 elif app_mode == "Dashboard":
@@ -405,5 +375,83 @@ elif app_mode == "Admin Dashboard":
             st.write(data.columns.tolist())
         except NameError:
             st.info("Upload a dataset to view its details.")
+            
+elif app_mode == "Vaccination Map":
+    st.header("📍 COVID-19 Vaccination Centers in Malaysia")
+
+    # Load clinic data (replace with full dataset if you have it as CSV)
+    @st.cache_data
+    def load_clinic_locations():
+        
+        return pd.read_csv("Clinics_coordinate.csv")  # ← You can export the earlier DataFrame to CSV
+
+    clinic_df = load_clinic_locations()
+
+    # Sidebar filters
+    st.sidebar.markdown("### 🗂️ Filter Clinics")
+
+    # STATE FILTER
+    all_states = sorted(clinic_df['State'].unique().tolist())
+
+    st.sidebar.markdown("**State**")
+    col1, col2 = st.sidebar.columns([1, 1])
+    if 'selected_states' not in st.session_state:
+        st.session_state.selected_states = all_states
+
+    if col1.button("Select All States"):
+        st.session_state.selected_states = all_states
+    if col2.button("Clear States"):
+        st.session_state.selected_states = []
+
+    selected_state = st.sidebar.multiselect(
+        "Select State(s):",
+        options=all_states,
+        default=st.session_state.selected_states,
+        key="state_filter"
+    )
+
+    # Filter based on state
+    filtered_df = clinic_df[clinic_df['State'].isin(selected_state)]
+
+    # DISTRICT FILTER (auto default to all in filtered states)
+    st.sidebar.markdown("**District**")
+    all_districts = sorted(filtered_df['District'].unique().tolist())
+    selected_district = st.sidebar.multiselect(
+        "Select District(s):",
+        options=all_districts,
+        default=all_districts,
+        key="district_filter"
+    )
+
+    # Final filtering
+    filtered_df = filtered_df[filtered_df['District'].isin(selected_district)]
 
 
+
+    # Show summary
+    st.success(f"Showing {len(filtered_df)} vaccination centers")
+
+    # Map view
+    map_df = filtered_df.rename(columns={"Latitude": "latitude", "Longitude": "longitude"})
+    st.map(map_df[['latitude', 'longitude']])
+
+
+    # Clinic list
+    st.subheader("📋 Vaccination Centre List with Map Buttons")
+
+    for index, row in filtered_df.iterrows():
+        col1, col2 = st.columns([4, 1])
+        with col1:
+            st.markdown(f"**{row['Clinic Name']}** — {row['District']}, {row['State']}")
+        with col2:
+            st.link_button("🗺️ View Map", row['Google Maps Link'])
+
+
+    # Download option
+    csv = filtered_df.to_csv(index=False)
+    st.download_button(
+        label="📥 Download Clinic List as CSV",
+        data=csv,
+        file_name='filtered_clinic_locations.csv',
+        mime='text/csv',
+    )

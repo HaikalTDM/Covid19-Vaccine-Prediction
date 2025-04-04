@@ -437,7 +437,7 @@ elif app_mode == "Vaccination Map":
 
 
     # Clinic list
-    st.subheader("📋 Vaccination Centre List with Map Buttons")
+    st.subheader("📋 Vaccination Centre ")
 
     for index, row in filtered_df.iterrows():
         col1, col2 = st.columns([4, 1])

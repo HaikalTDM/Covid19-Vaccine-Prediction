@@ -464,44 +464,4 @@ elif app_mode == "Vaccination Map":
 
     
 
-elif app_mode == "Health Chatbot":
-    st.header("🧠 Ask the Health Bot")
-    st.markdown("This AI chatbot can answer questions about COVID-19, vaccines, and general health.")
 
-    # Ollama-based API setup (OpenAI compatible)
-   
-    openai.api_base = "http://localhost:11434/v1"  # Ollama's default local API endpoint
-    openai.api_key = "ollama"  # Dummy key required by openai client
-    model = "llama3"  # You can also use "mistral", "gemma", etc. if pulled
-
-    # Initialize session state for chat history
-    if "messages" not in st.session_state:
-        st.session_state.messages = [
-            {"role": "assistant", "content": "Hi! Ask me anything about your health, COVID-19, or vaccines."}
-        ]
-
-    # Display chat history
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-
-    # Chat input
-    user_input = st.chat_input("Ask me anything...")
-    if user_input:
-        st.session_state.messages.append({"role": "user", "content": user_input})
-        with st.chat_message("user"):
-            st.markdown(user_input)
-
-        with st.chat_message("assistant"):
-            with st.spinner("Thinking..."):
-                try:
-                    response = openai.ChatCompletion.create(
-                        model=model,
-                        messages=st.session_state.messages
-                    )
-                    reply = response.choices[0].message.content
-                except Exception as e:
-                    reply = f"⚠️ Error: {e}"
-
-                st.markdown(reply)
-                st.session_state.messages.append({"role": "assistant", "content": reply})

@@ -75,7 +75,7 @@ vaccine_brands = ['Pfizer', 'Sinovac', 'AstraZeneca', 'Moderna',  'No Dose']
 
 st.set_page_config(page_title="Vaccine Mortality Insights", layout="wide")
 # Streamlit application setup
-st.title("COVID-19 Vaccine Mortality Prediction and Data Insights")
+st.title("Malaysia COVID-19 Vaccine Mortality Prediction ")
 st.sidebar.title("🧭 Navigation")
 st.sidebar.markdown("### Choose the mode:")
 

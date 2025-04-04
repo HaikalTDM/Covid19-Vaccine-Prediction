@@ -469,7 +469,7 @@ elif app_mode == "Health Chatbot":
     st.markdown("This AI chatbot can answer questions about COVID-19, vaccines, and general health.")
 
     # Ollama-based API setup (OpenAI compatible)
-    import openai
+   
     openai.api_base = "http://localhost:11434/v1"  # Ollama's default local API endpoint
     openai.api_key = "ollama"  # Dummy key required by openai client
     model = "llama3"  # You can also use "mistral", "gemma", etc. if pulled

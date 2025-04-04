@@ -89,7 +89,7 @@ modes = {
     "Dashboard": "📋 Dashboard",
     "Admin Dashboard": "🔐 Admin Dashboard",
     "Vaccination Map": "🗺️ Vaccination Map",
-    "Health Chatbot": "💬 Health Chatbot"
+    
 }
 
 

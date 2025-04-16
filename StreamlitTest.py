@@ -458,7 +458,7 @@ elif app_mode == "Health Chatbot":
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
                 try:
-                    response = openai.ChatCompletion.create(
+                    response = openai.Completion.create(
                         model="gpt-3.5-turbo",  # You can use GPT-3.5 or GPT-4 model
                         messages=st.session_state.messages,
                         temperature=0.7

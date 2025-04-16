@@ -8,11 +8,8 @@ import openai
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
-from dotenv import load_dotenv
 import os
 
-# Load environment variables from .env file
-load_dotenv()
 
 # Set OpenAI API key from the environment variable
 openai.api_key = st.secrets("OPENAI_API_KEY")

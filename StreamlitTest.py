@@ -87,7 +87,7 @@ def generate_dynamic_tips(mortality_probability, age):
             f"Generate a maximum of 3 tips."
         )
         
-        response = openai.ChatCompletion.create(
+        response = openai.Completion.create(
             model="gpt-3.5-turbo",  # You can use GPT-3.5 or GPT-4 model
             messages=[
                 {"role": "system", "content": "You are a health assistant AI."},

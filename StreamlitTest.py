@@ -86,7 +86,7 @@ def generate_dynamic_tips(mortality_probability, age):
             f"Generate a maximum of 3 tips."
         )
         
-        response = openai.chat_completions.create(
+        response = openai.ChatCompletions.create(
             model="gpt-3.5-turbo",  # You can use GPT-3.5 or GPT-4 model
             messages=[
                 {"role": "system", "content": "You are a health assistant AI."},
@@ -423,8 +423,7 @@ elif app_mode == "Health Chatbot":
     from dotenv import load_dotenv
     import os
 
-    # Load environment variables from .env file
-    load_dotenv()
+ 
 
     # Set OpenAI API key from the environment variable
     openai.api_key = st.secrets["OPENAI_API_KEY"]
@@ -457,7 +456,7 @@ elif app_mode == "Health Chatbot":
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
                 try:
-                    response = openai.chat_completions.create(
+                    response = openai.ChatCompletions.create(
                         model="gpt-3.5-turbo",  # You can use GPT-3.5 or GPT-4 model
                         messages=st.session_state.messages,
                         temperature=0.7

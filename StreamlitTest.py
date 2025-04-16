@@ -12,7 +12,8 @@ import os
 
 
 # Set OpenAI API key from the environment variable
-openai.api_key = st.secrets("OPENAI_API_KEY")
+openai.api_key = st.secrets["OPENAI_API_KEY"]
+
 
 st.set_page_config(page_title="Vaccine Mortality Insights", layout="wide")
 
@@ -427,7 +428,8 @@ elif app_mode == "Health Chatbot":
     load_dotenv()
 
     # Set OpenAI API key from the environment variable
-    openai.api_key = st.secrets("OPENAI_API_KEY")
+    openai.api_key = st.secrets["OPENAI_API_KEY"]
+
 
     if "messages" not in st.session_state:
         st.session_state.messages = [

@@ -14,7 +14,7 @@ import os
 # Set OpenAI API key from the environment variable
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
-st.set_page_config(page_title="Vaccine Mortality Insights", layout="wide")
+st.set_page_config(page_title="Vaccine Risk Insights", layout="wide")
 
 def train_and_save_model():
     file_path = "linelist_deaths1.csv"
@@ -55,7 +55,7 @@ data['vaccine_combo_encoded'] = label_encoder.transform(data['vaccine_combo'])
 
 vaccine_brands = ['Pfizer', 'Sinovac', 'AstraZeneca', 'Moderna',  'No Dose']
 
-st.title("COVID-19 Vaccine Mortality Prediction ")
+st.title("COVID-19 Vaccine Risk Prediction ")
 st.sidebar.title("🧭 Navigation")
 st.sidebar.markdown("### Choose the mode:")
 
@@ -80,7 +80,7 @@ app_mode = st.session_state["app_mode"]
 def generate_dynamic_tips(mortality_probability, age):
     try:
         prompt = (
-            f"Generate personalized health tips to reduce the mortality risk for a user aged {age}. "
+            f"Generate personalized health tips to reduce the risk for a user aged {age}. "
             f"The predicted risk is {mortality_probability * 100:.2f}%. "
             f"Provide lifestyle and health tips to help reduce this risk."
             f"Generate a maximum of 3 tips."
@@ -103,9 +103,9 @@ def generate_dynamic_tips(mortality_probability, age):
         return f"Error generating tips: {e}"
 
 if app_mode == "Prediction":
-    st.header("Predict Mortality Rate")
+    st.header("Predict Risk Rate")
     st.markdown("""
-    Predict the mortality probability based on age and vaccine combination.
+    Predict the risk probability based on age and vaccine combination.
     Enter the details below to get started.
     """)
 
@@ -114,7 +114,7 @@ if app_mode == "Prediction":
     dose2 = st.selectbox("Select Dose 2 vaccine:", options=vaccine_brands)
     booster = st.selectbox("Select Booster vaccine:", options=vaccine_brands)
 
-    if st.button("Predict Mortality Rate"):
+    if st.button("Predict Risk Rate"):
         try:
             selected_combo = '-'.join(sorted(filter(lambda x: x != "No Dose", [dose1, dose2, booster])))
 
@@ -128,12 +128,12 @@ if app_mode == "Prediction":
                 mortality_probability = rf_model.predict_proba(input_features)[0][1]
                 result = round(mortality_probability * 100, 2)
 
-                st.success(f"Predicted Mortality Rate: {result}%")
+                st.success(f"Predicted Risk Rate: {result}%")
 
                 with st.spinner('Generating tips...'):
                     ai_tips = generate_dynamic_tips(mortality_probability, age)
 
-                st.markdown(f"### Tips to Reduce Mortality Rate")
+                st.markdown(f"### Tips to Reduce Risk Rate")
                 st.write(ai_tips)
 
         except ValueError:
@@ -150,34 +150,34 @@ elif app_mode == "Data Visualization":
     if 'predicted_proba_mortality' not in data.columns:
         data['predicted_proba_mortality'] = rf_model.predict_proba(X)[:, 1]
 
-    st.subheader("Age Distribution by Mortality Outcome")
+    st.subheader("Age Distribution by Risk Outcome")
     fig, ax = plt.subplots(figsize=(10, 6))
     sns.histplot(data, x='age', hue='bid', multiple='stack', bins=30, kde=False, ax=ax)
-    ax.set_title("Age Distribution by Mortality Outcome")
+    ax.set_title("Age Distribution by Risk Outcome")
     ax.set_xlabel("Age")
     ax.set_ylabel("Count")
     st.pyplot(fig)
 
-    st.subheader("Vaccine Brand Usage by Mortality Outcome")
+    st.subheader("Vaccine Brand Usage by Risk Outcome")
     vaccine_counts = data[['brand1', 'brand2', 'brand3', 'bid']].melt(id_vars='bid', value_name='Vaccine Brand').dropna()
     fig, ax = plt.subplots(figsize=(10, 6))
     sns.countplot(data=vaccine_counts, x='Vaccine Brand', hue='bid', ax=ax)
-    ax.set_title("Vaccine Brand Usage by Mortality Outcome")
+    ax.set_title("Vaccine Brand Usage by Risk Outcome")
     ax.set_xlabel("Vaccine Brand")
     ax.set_ylabel("Count")
     plt.xticks(rotation=45)
     st.pyplot(fig)
 
-    st.subheader("Mortality Outcome Distribution Across States")
+    st.subheader("Risk Outcome Distribution Across States")
     fig, ax = plt.subplots(figsize=(12, 6))
     sns.countplot(data=data, x='state', hue='bid', order=data['state'].value_counts().index, ax=ax)
-    ax.set_title("Mortality Outcome Distribution Across States")
+    ax.set_title("Risk Outcome Distribution Across States")
     ax.set_xlabel("State")
     ax.set_ylabel("Count")
     plt.xticks(rotation=45)
     st.pyplot(fig)
 
-    st.subheader("Mortality Probabilities by Vaccine Combination")
+    st.subheader("Risk Probabilities by Vaccine Combination")
     vaccine_impact = data.groupby('vaccine_combo').agg(
         avg_predicted_mortality=('predicted_proba_mortality', 'mean'),
         total_cases=('bid', 'count')
@@ -185,22 +185,22 @@ elif app_mode == "Data Visualization":
 
     fig, ax = plt.subplots(figsize=(14, 8))
     sns.barplot(data=vaccine_impact, x='vaccine_combo', y='avg_predicted_mortality', ax=ax, palette='coolwarm')
-    ax.set_title("Predicted Mortality Probabilities by Vaccine Combination", fontsize=16)
+    ax.set_title("Predicted Risk Probabilities by Vaccine Combination", fontsize=16)
     ax.set_xlabel("Vaccine Combination", fontsize=12)
-    ax.set_ylabel("Avg Predicted Mortality Probability", fontsize=12)
+    ax.set_ylabel("Avg Predicted Risk Probability", fontsize=12)
     plt.xticks(rotation=90, ha='center', fontsize=10)
     plt.tight_layout()
     st.pyplot(fig)
 
-    st.subheader("Heatmap: Mortality by Vaccine and Age Group")
+    st.subheader("Heatmap: Risk by Vaccine and Age Group")
     data['age_group'] = pd.cut(data['age'], bins=[0, 17, 40, 65, 100], labels=['Child', 'Young Adult', 'Adult', 'Senior'])
     heatmap_data = data.groupby(['vaccine_combo', 'age_group']).agg(
         avg_predicted_mortality=('predicted_proba_mortality', 'mean')
     ).reset_index().pivot(index='vaccine_combo', columns='age_group', values='avg_predicted_mortality').fillna(0)
 
     fig, ax = plt.subplots(figsize=(12, 8))
-    sns.heatmap(heatmap_data, annot=True, cmap='coolwarm', fmt=".2f", cbar_kws={'label': 'Avg Predicted Mortality'})
-    ax.set_title("Heatmap: Mortality by Vaccine Combinations and Age Groups")
+    sns.heatmap(heatmap_data, annot=True, cmap='coolwarm', fmt=".2f", cbar_kws={'label': 'Avg Predicted Risk'})
+    ax.set_title("Heatmap: Risk by Vaccine Combinations and Age Groups")
     ax.set_xlabel("Age Group")
     ax.set_ylabel("Vaccine Combination")
     st.pyplot(fig)
@@ -221,7 +221,7 @@ elif app_mode == "Dashboard":
     st.subheader("Summary Statistics")
     col1, col2, col3 = st.columns(3)
     col1.metric("Total Cases", len(filtered_data))
-    col2.metric("Average Mortality Rate", f"{filtered_data['bid'].mean() * 100:.2f}%")
+    col2.metric("Average Risk Rate", f"{filtered_data['bid'].mean() * 100:.2f}%")
     col3.metric("Unique Vaccine Combinations", filtered_data['vaccine_combo'].nunique())
 
     st.download_button(
@@ -234,34 +234,34 @@ elif app_mode == "Dashboard":
     st.subheader("Filtered Data")
     st.write(filtered_data)
 
-    st.subheader("Age Distribution by Mortality Outcome (Filtered Data)")
+    st.subheader("Age Distribution by Risk Outcome (Filtered Data)")
     fig, ax = plt.subplots(figsize=(10, 6))
     sns.histplot(filtered_data, x='age', hue='bid', multiple='stack', bins=30, kde=False, ax=ax)
-    ax.set_title("Age Distribution by Mortality Outcome")
+    ax.set_title("Age Distribution by Risk Outcome")
     ax.set_xlabel("Age")
     ax.set_ylabel("Count")
     st.pyplot(fig)
 
-    st.subheader("Vaccine Brand Usage by Mortality Outcome (Filtered Data)")
+    st.subheader("Vaccine Brand Usage by Risk Outcome (Filtered Data)")
     vaccine_counts = filtered_data[['brand1', 'brand2', 'brand3', 'bid']].melt(id_vars='bid', value_name='Vaccine Brand').dropna()
     fig, ax = plt.subplots(figsize=(10, 6))
     sns.countplot(data=vaccine_counts, x='Vaccine Brand', hue='bid', ax=ax)
-    ax.set_title("Vaccine Brand Usage by Mortality Outcome")
+    ax.set_title("Vaccine Brand Usage by Risk Outcome")
     ax.set_xlabel("Vaccine Brand")
     ax.set_ylabel("Count")
     plt.xticks(rotation=45)
     st.pyplot(fig)
 
-    st.subheader("Mortality Outcome Distribution Across States (Filtered Data)")
+    st.subheader("Risk Outcome Distribution Across States (Filtered Data)")
     fig, ax = plt.subplots(figsize=(12, 6))
     sns.countplot(data=filtered_data, x='state', hue='bid', order=filtered_data['state'].value_counts().index, ax=ax)
-    ax.set_title("Mortality Outcome Distribution Across States")
+    ax.set_title("Risk Outcome Distribution Across States")
     ax.set_xlabel("State")
     ax.set_ylabel("Count")
     plt.xticks(rotation=45)
     st.pyplot(fig)
 
-    st.subheader("Mortality Probabilities by Vaccine Combination (Filtered Data)")
+    st.subheader("Risk Probabilities by Vaccine Combination (Filtered Data)")
     filtered_data['predicted_proba_mortality'] = rf_model.predict_proba(filtered_data[['age', 'vaccine_combo_encoded']])[:, 1]
     vaccine_impact_filtered = filtered_data.groupby('vaccine_combo').agg(
         avg_predicted_mortality=('predicted_proba_mortality', 'mean'),
@@ -270,22 +270,22 @@ elif app_mode == "Dashboard":
 
     fig, ax = plt.subplots(figsize=(14, 8))
     sns.barplot(data=vaccine_impact_filtered, x='vaccine_combo', y='avg_predicted_mortality', ax=ax, palette='coolwarm')
-    ax.set_title("Predicted Mortality Probabilities by Vaccine Combination (Filtered Data)", fontsize=16)
+    ax.set_title("Predicted Risk Probabilities by Vaccine Combination (Filtered Data)", fontsize=16)
     ax.set_xlabel("Vaccine Combination", fontsize=12)
-    ax.set_ylabel("Avg Predicted Mortality Probability", fontsize=12)
+    ax.set_ylabel("Avg Predicted Risk Probability", fontsize=12)
     plt.xticks(rotation=90, ha='center', fontsize=10)
     plt.tight_layout()
     st.pyplot(fig)
 
-    st.subheader("Heatmap: Mortality by Vaccine and Age Group (Filtered Data)")
+    st.subheader("Heatmap: Risk by Vaccine and Age Group (Filtered Data)")
     filtered_data['age_group'] = pd.cut(filtered_data['age'], bins=[0, 17, 40, 65, 100], labels=['Child', 'Young Adult', 'Adult', 'Senior'])
     heatmap_data_filtered = filtered_data.groupby(['vaccine_combo', 'age_group']).agg(
         avg_predicted_mortality=('predicted_proba_mortality', 'mean')
     ).reset_index().pivot(index='vaccine_combo', columns='age_group', values='avg_predicted_mortality').fillna(0)
 
     fig, ax = plt.subplots(figsize=(12, 8))
-    sns.heatmap(heatmap_data_filtered, annot=True, cmap='coolwarm', fmt=".2f", cbar_kws={'label': 'Avg Predicted Mortality'})
-    ax.set_title("Heatmap: Mortality by Vaccine Combinations and Age Groups (Filtered Data)")
+    sns.heatmap(heatmap_data_filtered, annot=True, cmap='coolwarm', fmt=".2f", cbar_kws={'label': 'Avg Predicted Risk'})
+    ax.set_title("Heatmap: Risk by Vaccine Combinations and Age Groups (Filtered Data)")
     ax.set_xlabel("Age Group")
     ax.set_ylabel("Vaccine Combination")
     st.pyplot(fig)
@@ -316,7 +316,7 @@ elif app_mode == "Admin Dashboard":
             st.session_state.logged_in = False
 
         dataset_file = st.file_uploader("Upload New Dataset (CSV format)", type=["csv"])
-        model_file = st.file_uploader("Upload New Mortality Model (PKL format)", type=["pkl"])
+        model_file = st.file_uploader("Upload New Risk Model (PKL format)", type=["pkl"])
         encoder_file = st.file_uploader("Upload New Label Encoder (PKL format)", type=["pkl"])
 
         if dataset_file:
@@ -331,9 +331,9 @@ elif app_mode == "Admin Dashboard":
             try:
                 with open("mortality_model.pkl", "wb") as f:
                     f.write(model_file.read())
-                st.success("Mortality model uploaded successfully!")
+                st.success("Risk model uploaded successfully!")
             except Exception as e:
-                st.error(f"Failed to upload mortality model: {e}")
+                st.error(f"Failed to upload risk model: {e}")
 
         if encoder_file:
             try:
